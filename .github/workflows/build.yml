@@ -1,0 +1,53 @@
+# 每次提交自动构建单文件 genre-shelf.html 并保存为构建产物；推送 v* 标签时发布到 GitHub Release（§3）
+name: 构建
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 类型检查
+        run: npm run typecheck
+      - name: 单元测试
+        run: npm test
+      - name: 构建单文件
+        run: npm run build
+      - name: 安装测试用浏览器
+        run: npx playwright install --with-deps chromium
+      - name: 端到端测试（file:// 打开、拦截全部网络请求）
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v6
+        with:
+          name: genre-shelf-${{ github.run_number }}
+          path: dist/genre-shelf.html
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          name: genre-shelf-${{ github.run_number }}
+      - name: 发布到 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" genre-shelf.html --repo "$GITHUB_REPOSITORY" --generate-notes
