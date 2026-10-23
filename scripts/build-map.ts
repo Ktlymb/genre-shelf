@@ -38,6 +38,7 @@ const NAME_ZH_OVERRIDES: Record<string, string> = {
   AX: '奥兰群岛',
   GG: '根西岛',
   JE: '泽西岛',
+  SZ: '埃斯瓦蒂尼',
   AU: '澳大利亚',
   CN: '中国大陆',
   TW: '台湾',

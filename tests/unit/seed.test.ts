@@ -72,7 +72,7 @@ describe('预设国家（§4.5、§4.6、§15.2）', () => {
   });
 
   it('人工覆盖的中文名', () => {
-    const names = { KP: '朝鲜', KR: '韩国', CD: '刚果（金）', CG: '刚果（布）', MN: '蒙古', AX: '奥兰群岛', GG: '根西岛', JE: '泽西岛' };
+    const names = { KP: '朝鲜', KR: '韩国', CD: '刚果（金）', CG: '刚果（布）', MN: '蒙古', AX: '奥兰群岛', GG: '根西岛', JE: '泽西岛', SZ: '埃斯瓦蒂尼' };
     for (const [code, name] of Object.entries(names)) expect(byCode.get(code)?.name_zh).toBe(name);
   });
 
