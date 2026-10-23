@@ -1,13 +1,14 @@
 # Genre Shelf 工程规格书
 
-> 版本：v0.4　状态：委托人已确认，待进入开发（M0）
-> 一个记录「读过的书」的多用户网站：世界地图直观展示阅读分布，Notion 式表格做筛选与分析。
+> 版本：v0.5　状态：委托人已确认，待进入开发（M0）
+> 一个记录「读过的书」的个人网站：世界地图直观展示阅读分布，Notion 式表格做筛选与分析。
 
 **修订记录**
 
 | 版本 | 变更 |
 |---|---|
 | v0.1 | 初稿 |
+| v0.5 | **改为单人自用**：不做注册、邀请码、公开分享；登录简化为一个访问口令；数据库由 PostgreSQL 改为 SQLite（单文件）；删除管理员后台，国家条目维护并入设置页；多用户与分享列为未来扩展（§8.2） |
 | v0.4 | ① 书友在中国大陆：部署方案由 Vercel + Supabase 改为**境外 VPS 自托管**（Docker Compose + PostgreSQL + 自有域名），所有静态资源自托管；② 登录改为用户名 + 密码，权限由统一数据访问层强制；③ 「南斯拉夫联盟」`YU` 与 `YUS` 两个条目都启用；④ 所有已消失的政权按同一机制处理，预设条目大幅扩充，并新增管理员后台维护条目 |
 | v0.3 | 委托人表示全部采纳我方建议：§14 的待确认事项已逐项给出决定（见 §14.1）；注册方式默认改为「凭邀请码」 |
 | v0.2 | ① 界面不使用任何国旗；② 新增「大中华地区」区域分组（世界地图上合并显示）；③ 新增大中华省级二级地图与「籍贯」字段；④ 区域合并显示改为条目级开关（`merge_display`），提前到 v1；⑤ 里程碑增加 M3 |
@@ -18,15 +19,15 @@
 
 ### 1.1 目标
 
-1. 用户注册登录后，录入自己读过的书。
+1. 登录后，录入自己读过的书。
 2. **地图页**：世界地图按各国已读书数量着色；悬停国家查看作者与作品；点击书名进入详情。
 3. **大中华二级地图**：华语作品按作者籍贯，细分到省级单位着色。
 4. **表格页**：以表格展示全部书籍，支持筛选、排序、分组、汇总与图表分析。
-5. 可以分享给书友：每人独立书库，可选择公开自己的页面。
+5. **单人自用**：一个账号、一个书库，口令登录；多用户与分享列为未来扩展（§8.2）。
 
 ### 1.2 第一版（v1）不做
 
-- 书友之间的关注、评论、点赞等社交功能
+- 多用户、注册、邀请码、公开分享页，以及书友之间的关注、评论、点赞等社交功能（未来扩展，见 §8.2）
 - 自动抓取书籍信息（豆瓣、ISBN 查询等）
 - 多语言界面（只做中文，但文案集中存放，为以后加英文留口子）
 - 原生手机 App（网页做好手机适配即可）
@@ -38,7 +39,7 @@
 
 | # | 事项 | 决定 | 来源 |
 |---|---|---|---|
-| D1 | 书库归属 | 每人独立书库；可选择公开自己的页面 | 委托人确认（按默认） |
+| D1 | 使用范围 | **单人自用**：一个账号、一个书库；不做注册、邀请码、公开分享（v0.5 由「每人独立书库」改为单用户） | 委托人决定 |
 | D2 | 作者与译者 | 一本书支持多位作者、多位译者 | 委托人确认 |
 | D3 | 「国家」含义 | 默认取作者国籍；录入后可对单本书手动改。华语作者的归属规则见 D8 | 委托人确认 |
 | D4 | 界面语言 | 中文 | 委托人确认 |
@@ -48,25 +49,24 @@
 | D8 | 华语作品的地理单位 | 以「**大中华地区**」作为一个文化区域分组（不是国家）；世界地图上合并为一个色块；细分用作者**籍贯**，在二级地图上按省级单位着色 | 采纳（用户确认） |
 | D9 | 国旗 | 界面中**不使用任何国旗**（包括 emoji 国旗，也不设计合成图标）。国家一律以文字名称显示 | 采纳（用户确认） |
 | D10 | 已消失的政权 | 奥匈帝国、奥地利帝国、波兰立陶宛联邦等，**全部按 D7 的同一机制处理**（§4.5） | 委托人确认 |
-| D11 | 部署 | **书友在中国大陆**：服务器放境外（香港/东京/新加坡），自托管，自有域名，所有资源自托管，不依赖需要大陆可访问的境外 SaaS（§3） | 委托人补充；我据此改了方案 |
-| A1 | 用户规模 | 假设几个到几百人使用，不追求高并发 | 我的假设，待确认 |
-| A2 | 注册方式 | 默认**凭邀请码**注册（只给书友使用，防止陌生人刷号、控制服务器负载）；可通过环境变量 `REQUIRE_INVITE_CODE=false` 改为开放注册 | 采纳（v0.3 由「默认开放」改为「默认邀请码」） |
+| D11 | 部署 | **使用者在中国大陆**：服务器放境外（香港/东京/新加坡），自托管，自有域名，所有资源自托管，不依赖需要大陆可访问的境外 SaaS（§3） | 委托人补充；我据此改了方案 |
+| A1 | 用户规模 | 1 个人使用，数据量最多几千本书；不追求高并发 | 委托人决定 |
+| A2 | 访问方式 | 单个访问口令登录；需要能在手机和电脑上随时打开，因此仍部署到服务器，而不是只在本机运行 | 我的假设，待确认 |
 | A3 | 着色依据 | 默认按「本数」，提供切换为「字数」的开关 | 我的建议 |
 
 ---
 
 ## 3. 技术选型
 
-选型原则：**书友在中国大陆，必须保证大陆网络稳定可访问**；部署简单；数据完全由自己掌握。
+选型原则：**使用者在中国大陆，必须保证大陆网络稳定可访问**；部署简单、维护省心；数据完全由自己掌握。
 
 | 层 | 选择 | 理由 |
 |---|---|---|
 | 前端框架 | Next.js（App Router）+ TypeScript | 生态成熟，一个项目同时包含页面和服务端逻辑 |
 | 样式 | Tailwind CSS | 开发快，手机适配方便 |
-| 数据库 | PostgreSQL 16（Docker 自托管）+ Drizzle ORM | 标准数据库，不绑定厂商 |
-| 登录 | Better Auth（用户名 + 密码，邀请码注册，会话 Cookie） | 自托管，不依赖境外 SaaS；密码加密存储由库处理 |
-| 权限 | 统一数据访问层（所有查询强制带 `user_id` 条件）+ 跨用户访问自动化测试 | 一处强制，避免遗漏；测试保证不会泄露他人数据 |
-| 托管 | 境外 VPS（香港/东京/新加坡，2 vCPU / 2 GB 内存足够）+ Docker Compose（Caddy 自动 HTTPS + Next.js + PostgreSQL） | 大陆访问相对稳定；一台机器搞定所有组件 |
+| 数据库 | SQLite（单个数据文件）+ Drizzle ORM | 单人自用完全够用；备份就是复制一个文件；部署最简单 |
+| 登录与权限 | 单个访问口令 + 签名 Cookie 会话（自行实现，不引入认证库） | 只有一个账号，不需要完整的认证框架；未登录一律拒绝，登录后可读写全部数据 |
+| 托管 | 境外 VPS（香港/东京/新加坡，1 vCPU / 1 GB 内存足够）+ Docker Compose（Caddy 自动 HTTPS + Next.js，SQLite 数据文件放在持久化卷） | 大陆访问相对稳定；一台机器搞定所有组件 |
 | 部署 | GitHub Actions：推送到主分支后自动构建并部署到 VPS | 我来配置，你无需手动操作服务器 |
 | 静态资源 | 字体、脚本、地图数据**全部随站点自托管**；使用系统中文字体（苹方、微软雅黑、Noto Sans SC） | 不引用 Google Fonts、unpkg 等在大陆常常无法访问的境外 CDN |
 | 地图 | D3-geo + d3-zoom 渲染 SVG；世界底图用 Natural Earth 1:50m admin-0，大中华二级地图用 Natural Earth admin-1（均为公有领域） | 着色、缩放、悬停完全可控 |
@@ -77,11 +77,11 @@
 
 ### 3.1 部署与大陆访问
 
-- **为什么不用 Vercel + Supabase**：据我了解，它们的默认域名在中国大陆经常不稳定甚至无法访问，而书友全在大陆，所以不采用。
-- **服务器放境外，不做大陆备案**：大陆备案需要大陆主体，且据我了解，在大陆境内提供网络地图服务还有测绘与审图方面的要求，本项目采用的开源底图并不满足（见 §14 R4）。因此网站仅面向受邀书友小范围使用。
-- **费用（粗略估计，以实际报价为准）**：VPS 约每月 5–10 美元，域名约每年 10 美元。这是项目上线后唯一的持续开销。
+- **为什么不用 Vercel + Supabase**：据我了解，它们的默认域名在中国大陆经常不稳定甚至无法访问，而使用者在大陆，所以不采用。
+- **服务器放境外，不做大陆备案**：大陆备案需要大陆主体，且据我了解，在大陆境内提供网络地图服务还有测绘与审图方面的要求，本项目采用的开源底图并不满足（见 §14 R4）。因此网站仅本人自用，不公开推广。
+- **费用（粗略估计，以实际报价为准）**：VPS 约每月 4–6 美元，域名约每年 10 美元。这是项目上线后唯一的持续开销。
 - **上线前验收**：用大陆的移动、联通、电信网络分别实测访问速度；若某条线路明显不佳，更换机房或线路（数据与程序不变，只迁移服务器）。
-- **邮件**：可选配置 SMTP（用于找回密码）；不配置则由管理员重置密码，对于几个书友的规模足够。
+- **忘记口令**：由我更换服务器配置中的口令哈希，不需要邮件服务。
 
 ---
 
@@ -90,29 +90,27 @@
 ### 4.1 实体关系
 
 ```
-profiles 1──* books *──* authors            （books 与 authors 经 book_authors 关联）
-                │ *──1 book_types
-                │ *──1 countries
-                │ *──0..1 regions           （仅当国家为「大中华地区」时有籍贯）
-profiles 1──* authors *──0..1 regions
-profiles 1──* saved_views
-countries（预设数据，所有人共享；含现代国家、历史国家、区域分组）
+books *──* authors            （经 book_authors 关联）
+  │ *──1 book_types
+  │ *──1 countries
+  │ *──0..1 regions           （仅当国家为「大中华地区」时有籍贯）
+authors *──0..1 regions
+saved_views、settings（各自独立）
+countries（预设数据；含现代国家、历史国家、区域分组）
 regions（预设数据：大中华 34 个省级单位）
-book_types（预设 + 用户自定义）
 ```
 
-### 4.2 表结构
+只有一个用户，所以表里没有 `user_id`。
+
+### 4.2 表结构（SQLite）
+
+约定：布尔值用 0/1；数组与 JSON 存为 JSON 文本（SQLite 的 `json_each` 可查询）；时间用 ISO 8601 文本；启动时开启 `PRAGMA foreign_keys = ON`。
 
 ```sql
--- 用户资料（与认证库的用户表一对一）
-create table profiles (
-  id            text primary key references "user"(id) on delete cascade,  -- 认证库的用户 ID
-  display_name  text not null,
-  slug          text unique,                 -- 公开页地址 /u/<slug>
-  is_public     boolean not null default false,
-  is_admin      boolean not null default false,
-  settings      jsonb not null default '{}', -- 地图两极颜色、着色依据、映射模式等
-  created_at    timestamptz not null default now()
+-- 应用设置（键值对）：地图两极颜色、着色模式、着色依据等
+create table settings (
+  key    text primary key,
+  value  text not null                       -- JSON
 );
 
 -- 国家/地区（现代国家、历史国家、区域分组）
@@ -121,13 +119,13 @@ create table countries (
   name_zh       text not null,
   name_en       text not null,
   kind          text not null check (kind in ('modern','historical','group')),
-  valid_from    int,                         -- 历史国家的存续年份
-  valid_to      int,
-  map_codes     text[] not null,             -- 对应世界地图上的哪些色块；现代国家就是它自己
-  merge_display boolean not null default false, -- true：世界地图上把 map_codes 合并为一个单元，使用同一颜色（见 §5.5）
-  selectable    boolean not null default true,  -- false：不出现在录书的国家下拉里
+  valid_from    integer,                     -- 历史国家的存续年份，可为负数
+  valid_to      integer,
+  map_codes     text not null,               -- JSON 数组：在世界地图上给哪些色块着色；现代国家就是它自己
+  merge_display integer not null default 0,  -- 1：世界地图上把 map_codes 合并为一个单元，使用同一颜色（见 §5.5）
+  selectable    integer not null default 1,  -- 0：不出现在录书的国家下拉里
   group_code    text references countries,   -- 所属区域分组，如 CN → GC
-  sort_order    int not null default 0
+  sort_order    integer not null default 0
 );
 
 -- 下级区域（目前只有大中华的 34 个省级单位）
@@ -137,84 +135,69 @@ create table regions (
   name_zh     text not null,
   name_en     text not null,
   map_id      text not null,                 -- 对应二级底图中色块的编号
-  sort_order  int not null default 0
+  sort_order  integer not null default 0
 );
 
--- 书籍类型（user_id 为空 = 系统预设，所有人可见；非空 = 用户自定义）
+-- 书籍类型（预设 + 自定义，全部可编辑）
 create table book_types (
-  id          bigint generated always as identity primary key,
-  user_id     text references profiles on delete cascade,
-  code        text not null check (code ~ '^[A-Z]{4}$'),   -- 图标上的四字母简称
+  id          integer primary key autoincrement,
+  code        text not null unique check (length(code) = 4 and code = upper(code)),  -- 图标上的四字母简称
   name_zh     text not null,
-  bg_color    text not null check (bg_color ~ '^#[0-9A-Fa-f]{6}$'),
-  sort_order  int not null default 0,
-  unique (user_id, code)
-);
+  bg_color    text not null,                 -- #RRGGBB
+  sort_order  integer not null default 0
+);                                           -- 被书籍引用的类型不可删除
 
--- 作者（每个用户自己一份，避免互相污染）
+-- 作者
 create table authors (
-  id            bigint generated always as identity primary key,
-  user_id       text not null references profiles on delete cascade,
-  name          text not null,
+  id            integer primary key autoincrement,
+  name          text not null unique,
   name_original text,
-  country_code  text references countries,  -- 作者的地理归属，用于录书时的默认值
+  country_code  text references countries,   -- 作者的地理归属，用于录书时的默认值
   region_code   text references regions,     -- 籍贯，仅当归属为「大中华地区」
-  unique (user_id, name),
   check (region_code is null or country_code = 'GC')
 );
 
 -- 书籍
 create table books (
-  id            bigint generated always as identity primary key,  -- 书籍编号（主键）
-  user_id       text not null references profiles on delete cascade,
+  id            integer primary key autoincrement,        -- 书籍编号（主键）
   title         text not null,               -- 书名
   original_title text,                       -- 原著名
-  country_code  text not null references countries,  -- 地图归属
+  country_code  text not null references countries,       -- 地图归属
   region_code   text references regions,     -- 籍贯，仅当归属为「大中华地区」；默认取第一作者的籍贯
-  type_id       bigint not null references book_types,
-  word_count    int check (word_count >= 0), -- 字数，可空
-  year_written  int,                         -- 创作年份，可为负数（公元前）
-  year_approx   boolean not null default false,       -- 「约」
-  translators   text[] not null default '{}',
+  type_id       integer not null references book_types,
+  word_count    integer check (word_count >= 0),          -- 字数，可空
+  year_written  integer,                     -- 创作年份，可为负数（公元前）
+  year_approx   integer not null default 0,  -- 「约」
+  translators   text not null default '[]',  -- JSON 数组
   publisher     text,
-  finished_on   date,                        -- 读完日期；空 = 未读完/日期不详
+  finished_on   text,                        -- 读完日期（YYYY-MM-DD）；空 = 未读完/日期不详
   status        text not null default 'finished' check (status in ('reading','finished')),
-  rating        smallint check (rating between 1 and 5),
+  rating        integer check (rating between 1 and 5),
   isbn          text,
   notes         text,                        -- 读后感/笔记
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now(),
+  created_at    text not null default (datetime('now')),
+  updated_at    text not null default (datetime('now')),
   check (region_code is null or country_code = 'GC')
 );
 
 -- 书-作者关联（有序，第一位为第一作者）
 create table book_authors (
-  book_id    bigint references books on delete cascade,
-  author_id  bigint references authors on delete restrict,
-  position   smallint not null default 0,
+  book_id    integer not null references books on delete cascade,
+  author_id  integer not null references authors on delete restrict,
+  position   integer not null default 0,
   primary key (book_id, author_id)
 );
 
 -- 表格视图（保存筛选/排序/分组/列显示配置）
 create table saved_views (
-  id        bigint generated always as identity primary key,
-  user_id   text not null references profiles on delete cascade,
+  id        integer primary key autoincrement,
   name      text not null,
-  config    jsonb not null,
-  position  int not null default 0
-);
-
--- 邀请码
-create table invite_codes (
-  code        text primary key,
-  created_by  text references profiles,
-  max_uses    int not null default 1,
-  used_count  int not null default 0,
-  expires_at  timestamptz
+  config    text not null,                   -- JSON
+  position  integer not null default 0
 );
 ```
 
-**索引**：`books(user_id, country_code)`、`books(user_id, region_code)`、`books(user_id, finished_on)`、`book_authors(author_id)`。
+**索引**：`books(country_code)`、`books(region_code)`、`books(finished_on)`、`book_authors(author_id)`。
 
 ### 4.3 字段对照（对应原始需求）
 
@@ -257,10 +240,10 @@ create table invite_codes (
 
 **两条原则**
 
-1. **`map_codes` 是「着色范围」，不是完整疆域。** 对跨越许多民族的大帝国，我只列了核心地区。否则一本卡夫卡会让十几个国家同时加一本，地图就失真了。预设范围是我的判断，管理员可在后台随时调整。
+1. **`map_codes` 是「着色范围」，不是完整疆域。** 对跨越许多民族的大帝国，我只列了核心地区。否则一本卡夫卡会让十几个国家同时加一本，地图就失真了。预设范围是我的判断，可在设置页随时调整。
 2. **录书指引：优先选现代国家。** 只有当作者或作品的归属确实横跨多个今天的国家、或者你想保留历史身份时，才选历史国家。例如：托尔斯泰直接选「俄罗斯」；卡夫卡则可选「奥匈帝国」。
 
-**预设条目**（可由管理员追加）：
+**预设条目**（可在设置页追加）：
 
 | code | 名称 | 存续 | 着色范围（`map_codes`） |
 |---|---|---|---|
@@ -288,7 +271,7 @@ create table invite_codes (
 - 古代文明的条目（`GRC`、`ROM` 等）只对应一个现代国家，作用是保留「古希腊」「古罗马」这样的**历史身份标签**，地图上着色给今天的国家。
 - **中国历代王朝不需要单独条目**：华语作品统一归入「大中华地区」（§4.6），朝代体现在「创作年份」字段里即可。
 - 同一个色块被多个条目覆盖时（例如塞尔维亚同时被 `YU`、`YUS`、现代塞尔维亚覆盖），数量取**去重后的书数**，不会重复计算。
-- **管理员后台** `/admin/countries`：可新增、修改历史国家条目（名称、存续年份、着色范围多选、是否合并显示），不需要改代码。
+- **设置页** `/settings/countries`：可新增、修改历史国家条目（名称、存续年份、着色范围多选、是否合并显示），不需要改代码。
 
 > `YU` 与 `YUS` 两个条目都启用：具体某本书属于哪个时期，由录书时选择。**`SU` 未读**：条目保留备用，但在没有书之前，地图上不会有任何东西为它着色。
 
@@ -367,7 +350,7 @@ create table invite_codes (
 **颜色设置**：
 - 低端色默认蓝 `#3B6FB6`，高端色默认红 `#C8372D`，两者用户都可改。
 - 可选「中间过渡色」（默认关闭；开启后做三色渐变，如蓝 → 浅灰 → 红）。
-- 设置保存在 `profiles.settings`，下次打开保持。
+- 设置保存在 `settings` 表，下次打开保持。
 
 **图例**：地图角落显示色带；色带上标出各档对应的本数（等级映射下是「几本 ↔ 哪种颜色」的离散色块，而不是连续刻度）。
 
@@ -513,52 +496,41 @@ create table invite_codes (
 
 ---
 
-## 8. 用户、权限与分享
+## 8. 访问与安全
 
-### 8.1 账号
+### 8.1 登录
 
-- 用户名 + 密码注册（邮箱选填）。忘记密码：配置了邮件服务时邮件重置，否则由管理员重置。
-- 注册时设置显示名称。
-- 默认凭邀请码注册；可通过环境变量 `REQUIRE_INVITE_CODE=false` 改为开放注册（A2）。邀请码由管理员在后台生成，可设使用次数与有效期。
+- **单账号，只有一个「访问口令」**：没有注册，没有用户名，没有邀请码。
+- 口令的哈希保存在服务器配置（环境变量）里，不入库，也不进代码仓库。
+- 登录后发放签名 Cookie（HttpOnly、Secure、SameSite=Lax），有效期 30 天；设置页有「退出登录」。
+- 登录失败限流：同一 IP 连续输错 5 次后锁定 15 分钟。
+- 未登录访问任何页面都跳转到 `/login`，访问任何接口都返回 401。
+- 忘记口令或怀疑泄露：由我更换服务器配置中的口令哈希与会话密钥，所有登录自动失效。
 
-### 8.2 权限（由统一数据访问层强制执行，并有自动化测试）
+### 8.2 未来扩展（不在本版范围）
 
-| 数据 | 所有者 | 其他登录用户 | 未登录访客 |
-|---|---|---|---|
-| 自己的 books / authors / saved_views | 读写 | 无 | 无 |
-| 公开用户（`is_public = true`）的 books / authors | 读写 | 只读 | 只读 |
-| `countries`、`regions`、系统预设 `book_types` | 只读 | 只读 | 只读 |
-| 用户自定义 `book_types` | 读写 | 无 | 无（公开页会读取，随公开用户一同只读开放） |
-
-- 管理员（`profiles.is_admin`，手工设置）可维护 `countries`、`regions`，并生成邀请码、重置用户密码。管理页面为 `/admin/*`，非管理员一律 404。
-- 任何数据库查询都必须经过数据访问层，数据访问层统一附加「所属用户 / 公开用户」条件；M1 起就有一组「用户 A 读写用户 B 的数据必须失败」的自动化测试，每次提交都会运行。
-
-### 8.3 公开分享
-
-- 设置页可开启「公开我的书库」，并设置个性化地址 `/u/<slug>`。
-- 公开页展示该用户的**世界地图、大中华二级地图和表格页（只读）**，没有编辑入口；不显示邮箱，不显示 `notes`（笔记默认私密，可在设置里选择是否公开笔记）。
-- 关闭公开后，该地址立即 404。
-- 公开页的着色和颜色设置沿用所有者的设置。
+多用户注册、邀请码、公开分享页都可以以后再加。迁移路径：`books`、`authors`、`saved_views`、`settings` 各加一列 `user_id`，把现有数据全部归给第一个用户；数据库可按需从 SQLite 迁到 PostgreSQL。本版**刻意不预留**这些复杂度。
 
 ---
 
 ## 9. 页面与路由
 
-| 路由 | 页面 | 登录要求 |
-|---|---|---|
-| `/` | 落地页 / 登录后跳转到 `/map` | 无 |
-| `/login`、`/register`、`/reset-password` | 账号相关 | 无 |
-| `/map` | 我的世界地图 | 是 |
-| `/map/gc` | 我的大中华二级地图（省级） | 是 |
-| `/table` | 我的书籍表格 | 是 |
-| `/table/analysis` | 数据分析 | 是 |
-| `/books/new` | 添加书籍 | 是 |
-| `/books/:id` | 书籍详情 | 所有者，或该书所属用户已公开 |
-| `/books/:id/edit` | 编辑 | 所有者 |
-| `/import` | CSV 导入 | 是 |
-| `/admin/countries`、`/admin/invites`、`/admin/users` | 管理员后台：国家条目维护、邀请码、重置密码 | 管理员 |
-| `/settings` | 个人设置：显示名、公开开关、地图颜色、自定义书籍类型 | 是 |
-| `/u/:slug`、`/u/:slug/map/gc`、`/u/:slug/table`、`/u/:slug/books/:id` | 他人公开页 | 无 |
+除 `/login` 外，所有页面都需要登录。
+
+| 路由 | 页面 |
+|---|---|
+| `/login` | 输入访问口令 |
+| `/` | 跳转到 `/map` |
+| `/map` | 世界地图 |
+| `/map/gc` | 大中华二级地图（省级） |
+| `/table` | 书籍表格 |
+| `/table/analysis` | 数据分析 |
+| `/books/new` | 添加书籍 |
+| `/books/:id` | 书籍详情 |
+| `/books/:id/edit` | 编辑 |
+| `/import` | CSV 导入 |
+| `/settings` | 设置：地图颜色与着色模式、自定义书籍类型、导出全部数据、退出登录 |
+| `/settings/countries` | 国家与历史国家条目维护 |
 
 **手机适配**：顶部导航折叠为底部标签栏；地图面板为底部抽屉；表格页横向滚动，首列（书名）冻结。
 
@@ -571,10 +543,10 @@ create table invite_codes (
 | 性能 | 1000 本书时，世界地图首屏 ≤ 2 秒（4G 网络）；表格筛选/排序响应 ≤ 200ms；二级地图数据按需加载，不拖慢世界地图首屏 |
 | 兼容 | 近两年的 Chrome / Safari / Edge / Firefox；iOS Safari、Android Chrome |
 | 无障碍 | 键盘可聚焦国家、展开面板；图标除颜色外带文字简称；颜色之外，图例同时标明数量 |
-| 安全 | 所有查询经统一数据访问层并强制带用户条件；密码加密存储；服务端密钥不下发到浏览器；CSV 大小与行数限制；登录接口限流 |
+| 安全 | 未登录一律拒绝；口令只保存哈希；服务端密钥不下发到浏览器；CSV 大小与行数限制；登录失败限流；全站 HTTPS |
 | 大陆可访问 | 所有字体、脚本、地图数据随站点自托管，不引用任何境外 CDN；上线前三大运营商实测 |
-| 隐私 | 公开为主动开启；默认不公开笔记；不收集多余个人信息 |
-| 备份 | 每日自动 `pg_dump` 备份，保存到服务器之外的另一处存储，保留 14 天；另提供「导出全部数据为 CSV」 |
+| 隐私 | 数据只有本人可见；不使用第三方统计或广告脚本 |
+| 备份 | 每日自动做 SQLite 在线备份（`sqlite3 .backup`），保存到服务器之外的另一处存储，保留 14 天；另提供「导出全部数据为 CSV」 |
 
 ---
 
@@ -595,13 +567,13 @@ genre-shelf/
 │  │  ├─ color-scale.ts       # §5.2 着色算法（纯函数，有单元测试）
 │  │  ├─ map-units.ts         # §5.5 合并显示 + 领土归属计数（纯函数，有单元测试）
 │  │  ├─ csv.ts               # CSV 导入导出与校验（含 §7.3 的归并规则）
-│  │  └─ db/                  # 数据库连接与统一数据访问层
+│  │  └─ db/                  # SQLite 连接与查询（Drizzle）
 │  └─ messages/zh.ts          # 全部界面文案
 ├─ db/
 │  ├─ migrations/             # 建表（SQL）
 │  └─ seed/                   # countries、regions、book_types 预设数据
 ├─ deploy/
-│  ├─ docker-compose.yml      # Caddy + 应用 + PostgreSQL
+│  ├─ docker-compose.yml      # Caddy + 应用（SQLite 数据文件放在持久化卷）
 │  ├─ Caddyfile
 │  └─ backup.sh               # 每日备份
 ├─ scripts/build-map.ts       # 生成世界底图与大中华二级底图，并做一致性检查
@@ -616,12 +588,12 @@ genre-shelf/
 | 阶段 | 内容 | 交付物 |
 |---|---|---|
 | **M0 工程搭建** | 项目脚手架、Docker Compose 本地环境、数据库迁移、国家/区域/类型预设数据、地图数据构建脚本（含 admin-1 数据可用性验证，见 §14 R3）、VPS 与域名部署（HTTPS）、自动部署、每日备份 | 自有域名上、大陆可打开的空壳网站 |
-| **M1 账号与录书** | 注册登录（用户名 + 密码、邀请码）、统一数据访问层与跨用户权限测试、管理员后台（邀请码、国家条目）、添加/编辑/删除书籍、作者管理、籍贯字段、详情页 | 能录入并查看书籍 |
+| **M1 登录与录书** | 访问口令登录与限流、设置页（国家条目维护）、添加/编辑/删除书籍、作者管理、籍贯字段、详情页 | 能录入并查看书籍 |
 | **M2 世界地图** | 渲染与缩放、着色算法、悬停/固定面板、微型国家标记、国家搜索、历史国家（规则 B）、大中华合并显示（规则 A） | 核心展示页可用 |
 | **M3 大中华二级地图** | 省级底图、按籍贯着色、省级面板、「未填写籍贯」提示、世界地图与二级地图的跳转 | 华语作品可细分查看 |
 | **M4 表格页** | 列/排序/筛选/分组/汇总、已保存视图、行内编辑 | 类 Notion 表格 |
 | **M5 分析与导入** | 分析面板、CSV 导入导出 | 数据可进可出 |
-| **M6 分享与打磨** | 公开页、设置页（颜色、自定义类型）、手机适配、无障碍、性能 | 可发给书友使用 |
+| **M6 设置与打磨** | 设置页（颜色、自定义类型）、手机适配、无障碍、性能、运维手册 | 可日常使用 |
 
 每个阶段结束都应是**可独立部署、可演示**的版本。
 
@@ -638,7 +610,7 @@ genre-shelf/
 7. 界面任何位置（面板、下拉、图例、详情页）**不出现国旗**。
 8. 给大中华作品填写籍贯后，二级地图上对应省级单位变色；颜色在 34 个单位内部独立按 §5.2 计算；未填籍贯的书出现在「未填写籍贯」提示里，补填后消失。
 9. 表格可按任意字段（含籍贯）筛选/排序/分组，汇总行正确；保存的视图刷新后仍在。
-10. 用户 A 无法通过任何路径（页面、接口）读取用户 B 未公开的数据。
+10. 未登录时，任何页面与接口都无法访问（页面跳转登录页，接口返回 401）；口令连续输错 5 次后被临时锁定。
 11. 导入 100 行 CSV，错误行被指出；国家填「台湾」的行被归并到大中华并补全籍贯，预览中有标注；确认后正确写入。
 
 ---
@@ -654,9 +626,9 @@ genre-shelf/
 | Q1 | **`YU` 与 `YUS` 两个条目都启用**（委托人确认） | 具体某本书属于哪个时期，由录书时选择 |
 | Q2 | 保持规则 B（领土归属计数） | 实际用起来不直观时，改数据开关即可 |
 | Q3 | 边界与名称按 Natural Earth 默认；名称用不带后缀的简称并列；**M3 完成后，委托人在实际渲染的二级地图上目视检查一次**，有异议再替换数据 | 不在地图上加任何额外注释或说明文字 |
-| Q4 | **书友在中国大陆（委托人确认）→ 部署方案改为境外 VPS 自托管**（§3、§3.1），不再使用 Vercel + Supabase；上线前三大运营商实测 | 新增持续开销：VPS 约每月 5–10 美元 + 域名约每年 10 美元 |
-| Q9 | 所有已消失的政权按同一机制处理，预设 20 个条目（§4.5），范围我定，管理员可调 | 条目与范围是我的判断，欢迎逐条检查；中国历代王朝不单列 |
-| Q5 | 默认邀请码注册（A2） | |
+| Q4 | **使用者在中国大陆（委托人确认）→ 部署方案改为境外 VPS 自托管**（§3、§3.1），不再使用 Vercel + Supabase；上线前三大运营商实测 | 新增持续开销：VPS 约每月 4–6 美元 + 域名约每年 10 美元 |
+| Q9 | 所有已消失的政权按同一机制处理，预设 20 个条目（§4.5），范围我定，设置页可调 | 条目与范围是我的判断，欢迎逐条检查；中国历代王朝不单列 |
+| Q5 | **不做注册与邀请码，单人自用**（D1；委托人决定） | 多用户列为未来扩展（§8.2） |
 | Q6 | 一书一国，可手动覆盖 | |
 | Q7 | 手动选择，系统不自动判断，表单有提示 | |
 | Q8 | 沿用「大中华地区」 | 改名只需改数据 |
@@ -668,11 +640,10 @@ genre-shelf/
 | Q1 | 「南斯拉夫联盟」指 1992–2003 的南联盟，还是铁托时代的南斯拉夫？ | 决定着色范围 | 两个都预设，用户录书时选 |
 | Q2 | 历史国家采用「领土归属计数」（§5.5 规则 B）是否可接受？ | 影响数字的直观性 | v1 按此实现；任一历史条目可通过数据开关改为合并显示，无需改代码 |
 | Q3 | 大中华二级地图的边界线与名称：南海诸岛、藏南、阿克赛钦等区域的画法，以及「台湾、香港、澳门」与各省并列显示 | 需委托人拍板 | 名称用不带后缀的简称并列；边界默认按 Natural Earth admin-1，可在构建脚本里替换数据。另：其他争议地区（科索沃、克里米亚、西撒哈拉、克什米尔）同样采用默认处理 |
-| Q5 | 开放注册还是邀请码？ | 防止被陌生人刷号 | 默认开放，可一键改为邀请码 |
 | Q6 | 一本书只归属一个国家是否足够？（例如流亡作家、跨国合著） | 地图计数口径 | v1 一书一国；可手动覆盖默认值 |
 | Q7 | 海外华语作家（已入籍他国）是按籍贯归入大中华，还是按国籍归入所在国？ | 影响该类作家在地图上的位置 | 默认按作者表单里的选择；表单中有提示，不自动判断 |
 | Q8 | 「大中华地区」这个名称是否合用？也可改叫「华语地区」「华语世界」等 | 纯命名，改数据即可 | 先用「大中华地区」 |
 | R1 | 自托管意味着要有人维护服务器（系统更新、备份检查、证书续期） | 网站可用性 | Docker Compose 一键部署、Caddy 自动续期 HTTPS、每日自动备份；M0 交付时附一页「运维手册」，写明几条常用命令 |
 | R2 | 表格功能被期望做成「完整 Notion」 | 范围蔓延 | v1 严格限定为 §7 列出的能力 |
 | R3 | 开放的 admin-1 数据是否完整覆盖 34 个省级单位，且文件体积适合网页加载 | 二级地图可行性 | M0 先验证；如不满足，换用其他开放数据或自行精简，不影响世界地图 |
-| R4 | 地图合规：据我了解，在中国大陆境内提供网络地图服务有测绘资质与审图要求；本项目的底图（Natural Earth）不满足。这不是法律意见，请朋友自行判断 | 影响能否放到大陆服务器、能否公开推广 | 服务器放境外，仅面向受邀书友小范围使用，不做公开推广；如日后要放到大陆境内，需重新评估 |
+| R4 | 地图合规：据我了解，在中国大陆境内提供网络地图服务有测绘资质与审图要求；本项目的底图（Natural Earth）不满足。这不是法律意见，请朋友自行判断 | 影响能否放到大陆服务器、能否公开推广 | 服务器放境外，仅本人自用，不公开推广；如日后要放到大陆境内，需重新评估 |
